@@ -96,4 +96,104 @@ class BagOfWords(Encoder):
         return vector
 
 # ENCODER 3
-# ......!!
+# ENCODER 3
+class TFIDFbigram(Encoder):
+
+    def __init__(self, tokenizer: Tokenizer):
+        self.tokenizer = tokenizer
+        self.vocab = {}
+        self.idf = None
+
+    def __len__(self):
+        return len(self.vocab)
+
+    def get_bigrams(self, text):
+        token_ids = self.tokenizer.encode(text).ids
+        return list(zip(token_ids, token_ids[1:]))
+
+    def fit(self, texts):
+        document_freq = {}
+        n_documents = 0
+
+        for sentences in texts:
+            n_documents += 1
+
+            for bigram in set(self.get_bigrams(sentences)):
+                document_freq[bigram] = document_freq.get(bigram, 0 ) +1
+
+        self.vocab = {bigram: idx for idx, bigram in enumerate(sorted(document_freq))}
+        self.idf = np.zeros(len(self))
+
+        for bigram, index in self.vocab.items():
+            self.idf[index] = np.log((n_documents + 1) / (document_freq[bigram] + 1 )) + 1
+        
+        return self
+    
+    def __call__(self, sentence):
+        tf_idf = np.zeros(len(self))
+
+        for bigram in self.get_bigrams(sentence):
+            index = self.vocab.get(bigram)
+            if index is not None:
+                tf_idf[index] +=1
+
+        tf_idf *= self.idf
+
+        norm = np.linalg.norm(tf_idf)
+        if norm > 0:
+            tf_idf /= norm
+
+        return tf_idf
+
+
+class TFIDFunigram(Encoder):
+
+    def __init__(self, tokenizer: Tokenizer):
+        self.tokenizer = tokenizer
+        self.vocab = {}
+        self.idf = None
+
+    def __len__(self):
+        return len(self.vocab)
+
+    def get_unigrams(self, text):
+     return self.tokenizer.encode(text).ids
+
+    def fit(self, texts):
+        document_freq = {}
+        n_documents = 0
+
+        for sentences in texts:
+            n_documents += 1
+
+            for token_id in set(self.get_unigrams(sentences)):
+                document_freq[token_id] = document_freq.get(token_id, 0) + 1
+
+        self.vocab = {
+            token_id: idx
+            for idx, token_id in enumerate(sorted(document_freq))
+        }
+        self.idf = np.zeros(len(self))
+
+        for token_id, index in self.vocab.items():
+            self.idf[index] = (
+                np.log((n_documents + 1) / (document_freq[token_id] + 1)) + 1
+            )
+        
+        return self
+    
+    def __call__(self, sentence):
+        tf_idf = np.zeros(len(self))
+
+        for token_id in self.get_unigrams(sentence):
+            index = self.vocab.get(token_id)
+            if index is not None:
+                tf_idf[index] += 1
+
+        tf_idf *= self.idf
+
+        norm = np.linalg.norm(tf_idf)
+        if norm > 0:
+            tf_idf /= norm
+
+        return tf_idf
