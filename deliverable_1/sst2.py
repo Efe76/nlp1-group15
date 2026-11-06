@@ -18,7 +18,7 @@ TOKENIZER_PATH = RESULTS_DIR / "sst2_tokenizer.json"
 CLASSES = part1.clslib.NamedClasses(['negative', 'positive'])
  
 VOCAB_SIZE = 5000
-MIN_FREQUENCY = 10
+MIN_FREQUENCY = 2
  
 NUM_FOLDS = 5
 SEEDS = [0]
