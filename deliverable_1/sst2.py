@@ -45,7 +45,7 @@ def load_sst2():
 def get_tokenizer(train):
     if TOKENIZER_PATH.exists():
         return Tokenizer.from_file(str(TOKENIZER_PATH))
-    corpus = [text for text, label in train]
+    corpus = [text for text, _ in train]
     tokenizer = part1.experiment.train_tokenizer(
         corpus=corpus,
         vocab_size=VOCAB_SIZE,
@@ -67,7 +67,7 @@ class TokenIndicator(Encoder):
         
     def __len__(self) -> int:
         """Dimensionality of the representation space"""
-        return len(self.tokenizer.get_vocab())
+        return self.tokenizer.get_vocab_size()
 
     def __call__(self, x: str) -> 'np.array':
         """Represent x as a D-dimensional vector of real numbers"""
@@ -86,7 +86,7 @@ class BagOfWords(Encoder):
         self.tokenizer = tokenizer
 
     def __len__(self):
-        return len(self.tokenizer.get_vocab())
+        return self.tokenizer.get_vocab_size()
 
     def __call__(self, x):
         token_ids = self.tokenizer.encode(x).ids
@@ -95,7 +95,6 @@ class BagOfWords(Encoder):
             vector[token_id] += 1
         return vector
 
-# ENCODER 3
 # ENCODER 3
 class TFIDFbigram(Encoder):
 
